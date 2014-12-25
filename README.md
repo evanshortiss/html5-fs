@@ -72,19 +72,15 @@ Node.js fs module:
 
 var fs = require('html5-fs'); // Or use window.fs
 
-fs.mkdir('test', function (err) {
-  if (err) {
-    // Darn :(
-  } else {
-    fs.writeFile('test/somefile.txt', 'Hello world', function(err) {
-      if(err) {
-        //Damn!
-      } else {
-        // Woo-hoo!
-      }
-    });
-  }
-});
+function writeFile(callback) {
+  fs.mkdir('test', function (err) {
+    if (err) {
+      callback(err, null);
+    } else {
+      fs.writeFile('test/somefile.txt', 'Hello world', callback);
+    }
+  }); 
+}
 
 ```
 
@@ -95,24 +91,20 @@ You can then compose more aesthetically pleasing code using async:
 var fs = require('html5-fs'); // Or use window.fs
 var async = require('async'); // Or use window.async
 
-function createDir(cb) {
-  fs.mkdir('test', cb);
-}
-
-function writeFile(cb) {
-  fs.writeFile('test/somefile.txt', 'Hello world', cb);
-}
-
-async.waterfall([
-  createDir,
-  writeFile
-], function(err) {
-  if(err) {
-    //Damn!
-  } else {
-    // Woo-hoo!
+function writeFile(callback) {
+  function createDir(cb) {
+    fs.mkdir('test', cb);
   }
-});
+
+  function writeFile(cb) {
+    fs.writeFile('test/somefile.txt', 'Hello world', cb);
+  }
+
+  async.waterfall([
+    createDir,
+    writeFile
+  ], callback); 
+}
 
 ```
 
@@ -173,7 +165,10 @@ mapping these be my guest, but it might be best to leave them as is!
 #### fs.init(desiredBytes, callback)
 
 Request access for a specific number of bytes. Users need to accept this 
-request, usually via a popup in the browser. Callback format should be as 
+request, usually via a popup in the browser. Cordova applications don't require
+users to accept any popups. 
+
+Callback format should be as 
 follows:
 
 __NOTE:__ for iOS and Android Cordova/PhoneGap applications the 
