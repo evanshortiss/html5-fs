@@ -5,21 +5,35 @@
 
   var expect = window.expect || window.chai.expect;
 
+  // Should probably use the standard fs API
+  function wipeLocalFiles (done) {
+
+    function wipeDir (entry, callback) {
+      if (entry.isFile) {
+        fs.unlink(entry.fullPath, callback);
+      } else {
+        fs.readdir(entry.fullPath, function (err, list) {
+          if (err) {
+            return callback(err);
+          }
+
+          async.each(list, wipeDir, callback);
+        });
+      }
+    }
+
+    fs.readdir('./', function (err, flist) {
+      expect(err).to.equal(null);
+      async.each(flist, wipeDir, done);
+    });
+  }
+
   before(function(done) {
     this.timeout(30000);
 
     fs.init(10 * 1024 * 1024, function(err) {
       expect(err).to.equal(null);
-
-      fs.readdir('./', function (err, flist) {
-        async.each(flist, function (entry, cb) {
-          if (entry.isFile) {
-            fs.unlink(entry.name, cb);
-          } else {
-            fs.rmdir(entry.name, cb);
-          }
-        }, done);
-      });
+      wipeLocalFiles(done);
     });
   });
 

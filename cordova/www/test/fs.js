@@ -294,14 +294,14 @@ process.chdir = function (dir) {
 },{}],3:[function(_dereq_,module,exports){
 'use strict';
 
-var ERRORS = _dereq_('./errors')
-  , utils = _dereq_('./utils')
+var utils = _dereq_('./utils')
   , pathm = _dereq_('path')
   , fs = _dereq_('./fileSystem');
 
 var wrapSuccess = utils.wrapSuccess
   , wrapFail = utils.wrapFail;
 
+exports.getFsInstance = fs.getInstance;
 
 exports.appendFile = function(path, data, callback) {
   fs.writeFile(path, data, callback, true);
@@ -399,15 +399,31 @@ exports.mkdir = function(path, callback) {
 };
 
 
+/**
+ * Remove a directory.
+ * The FileSystem API expects directories to be empty but returns a
+ * non-informative error on Android and possibly iOS so we check here
+ * to ensure users know why directory deletes might fail.
+ * @param  {String}   path
+ * @param  {Function} callback
+ */
 exports.rmdir = function(path, callback) {
   var success = wrapSuccess(callback)
     , fail = wrapFail(callback);
 
-  fs.getDirectory(path, function(err, dirEntry) {
+  this.readdir(path, function(err, list) {
     if (err) {
       fail(err);
+    } else if (list && list.length > 0) {
+      fail('ENOTEMPTY: Directory must be empty');
     } else {
-      dirEntry.remove(success, fail);
+      fs.getDirectory(path, function(err, dirEntry) {
+        if (err) {
+          fail(err);
+        } else {
+          dirEntry.remove(success, fail);
+        }
+      });
     }
   });
 };
@@ -421,11 +437,12 @@ exports.exists = function(path, callback) {
     // Don't create the file, just look for it
     create: false
   }, function(err) {
-    if (err && err !== ERRORS.NOT_FOUND_ERR) {
-      fail(err);
-    } else if (err && err === ERRORS.NOT_FOUND_ERR) {
-      // If the file isn't found we don't want an error!
+    if (err && err.code === 1) { // NOT FOUND
+      // If the file isn't found we don't want an error, pass false!
       success(false);
+    } else if (err) {
+      // An actual error occured, pass it along
+      fail(err);
     } else {
       success(true);
     }
@@ -438,7 +455,7 @@ exports.stat = function(path, callback) {
     , fail = wrapFail(callback)
     , fn = fs.getFile;
 
-  // TODO: Check for folder AND file instead, use whichever exists
+  // TODO: Perhaps check for folder AND file instead, use whichever exists
   if (utils.isDirectory(path)) {
     fn = fs.getDirectory;
   }
@@ -470,24 +487,10 @@ exports.init = function(bytes, callback) {
   });
 };
 
-},{"./errors":4,"./fileSystem":5,"./utils":6,"path":1}],4:[function(_dereq_,module,exports){
+},{"./fileSystem":4,"./utils":5,"path":1}],4:[function(_dereq_,module,exports){
 'use strict';
 
-module.exports = {
-  'QUOTA_EXCEEDED_ERR': 'QUOTA_EXCEEDED_ERR',
-  'NOT_FOUND_ERR': 'NOT_FOUND_ERR',
-  'SECURITY_ERR': 'SECURITY_ERR',
-  'INVALID_MODIFICATION_ERR': 'INVALID_MODIFICATION_ERR',
-  'INVALID_STATE_ERR': 'INVALID_STATE_ERR',
-  'UNKNOWN_ERROR': 'UNKNOWN_ERROR',
-  'NO_SUPPORT': 'NO_SUPPORT'
-};
-
-},{}],5:[function(_dereq_,module,exports){
-'use strict';
-
-var ERRORS = _dereq_('./errors')
-  , utils = _dereq_('./utils')
+var utils = _dereq_('./utils')
   , pathm = _dereq_('path');
 
 var DEFAULT_QUOTA = (10 * 1024 * 1024); // 10MB
@@ -661,7 +664,7 @@ function requestFileSystem(bytes, success, fail) {
       fail
     );
   } else {
-    fail(ERRORS.NO_SUPPORT);
+    fail('NO_SUPPORT');
   }
 }
 
@@ -703,14 +706,12 @@ function requestQuota(quota, callback) {
 
     success(quota);
   } else {
-    fail(ERRORS.NO_SUPPORT);
+    fail('NO_SUPPORT');
   }
 }
 
-},{"./errors":4,"./utils":6,"path":1}],6:[function(_dereq_,module,exports){
+},{"./utils":5,"path":1}],5:[function(_dereq_,module,exports){
 'use strict';
-
-var ERRORS = _dereq_('./errors');
 
 /**
  * Detect is the device a mobile device.
@@ -769,32 +770,9 @@ exports.wrapSuccess = function(callback) {
 exports.wrapFail = function(callback) {
   return function() {
     var args = Array.prototype.slice.call(arguments)
-      , e = args[0]
-      , msg = '';
+      , e = args[0];
 
-    // Modified version of html5 rocks error handler
-    switch (e.code) {
-      case window.FileError.QUOTA_EXCEEDED_ERR:
-        msg = ERRORS.QUOTA_EXCEEDED_ERR;
-        break;
-      case window.FileError.NOT_FOUND_ERR:
-        msg = ERRORS.NOT_FOUND_ERR;
-        break;
-      case window.FileError.SECURITY_ERR:
-        msg = ERRORS.SECURITY_ERR;
-        break;
-      case window.FileError.INVALID_MODIFICATION_ERR:
-        msg = ERRORS.INVALID_MODIFICATION_ERR;
-        break;
-      case window.FileError.INVALID_STATE_ERR:
-        msg = ERRORS.INVALID_STATE_ERR;
-        break;
-      default:
-        msg = ERRORS.UNKNOWN_ERROR;
-        break;
-    }
-
-    callback.apply(callback, [msg, null]);
+    callback.apply(callback, [e, null]);
   };
 };
 
@@ -808,6 +786,6 @@ exports.isDirectory = function(path) {
   return (path.lastIndexOf('/') === (path.length - 1));
 };
 
-},{"./errors":4}]},{},[3])
+},{}]},{},[3])
 (3)
 });

@@ -126,6 +126,10 @@ First install all dependencies with ```npm install```.
 
 Also make sure you have Grunt installed ```npm install -g grunt-cli```.
 
+If you plan to test either iOS or Android you'll need to run 
+```cordova add platorm [platform-name]```. I did this using the Cordova CLI 
+version 4.1.2.
+
 If testing using the iOS Simulator you'll need to 
 ```npm install -g ios-sim``` too.
 
