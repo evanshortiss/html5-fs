@@ -1,7 +1,6 @@
 'use strict';
 
-var ERRORS = require('./errors')
-  , utils = require('./utils')
+var utils = require('./utils')
   , pathm = require('path');
 
 var DEFAULT_QUOTA = (10 * 1024 * 1024); // 10MB
@@ -175,7 +174,7 @@ function requestFileSystem(bytes, success, fail) {
       fail
     );
   } else {
-    fail(ERRORS.NO_SUPPORT);
+    fail('NO_SUPPORT');
   }
 }
 
@@ -217,6 +216,6 @@ function requestQuota(quota, callback) {
 
     success(quota);
   } else {
-    fail(ERRORS.NO_SUPPORT);
+    fail('NO_SUPPORT');
   }
 }

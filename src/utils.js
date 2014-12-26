@@ -1,7 +1,5 @@
 'use strict';
 
-var ERRORS = require('./errors');
-
 /**
  * Detect is the device a mobile device.
  * @return {Boolean}
@@ -59,32 +57,9 @@ exports.wrapSuccess = function(callback) {
 exports.wrapFail = function(callback) {
   return function() {
     var args = Array.prototype.slice.call(arguments)
-      , e = args[0]
-      , msg = '';
+      , e = args[0];
 
-    // Modified version of html5 rocks error handler
-    switch (e.code) {
-      case window.FileError.QUOTA_EXCEEDED_ERR:
-        msg = ERRORS.QUOTA_EXCEEDED_ERR;
-        break;
-      case window.FileError.NOT_FOUND_ERR:
-        msg = ERRORS.NOT_FOUND_ERR;
-        break;
-      case window.FileError.SECURITY_ERR:
-        msg = ERRORS.SECURITY_ERR;
-        break;
-      case window.FileError.INVALID_MODIFICATION_ERR:
-        msg = ERRORS.INVALID_MODIFICATION_ERR;
-        break;
-      case window.FileError.INVALID_STATE_ERR:
-        msg = ERRORS.INVALID_STATE_ERR;
-        break;
-      default:
-        msg = ERRORS.UNKNOWN_ERROR;
-        break;
-    }
-
-    callback.apply(callback, [msg, null]);
+    callback.apply(callback, [e, null]);
   };
 };
 
