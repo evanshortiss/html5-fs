@@ -121,6 +121,23 @@ build with FileSystem access and the FileSystem plugin as described
 [here](https://github.com/apache/cordova-plugin-file/blob/master/doc/index.md). 
 
 
+## Project Wide Override
+You can map your project to use this module in place of the standard Node.js fs 
+module by adding a _browser_ object like so into the package.json before 
+running the browserify command. Just make sure html5-fs is installed as a 
+dependency first.
+
+```json
+
+"browser": {
+  "fs": "html5-fs",
+},
+
+```
+
+For more info check out the 
+[Browserify Handbook](https://github.com/substack/browserify-handbook).
+
 ## Tests
 First install all dependencies with ```npm install```.
 
@@ -172,6 +189,8 @@ Request access for a specific number of bytes. Users need to accept this
 request, usually via a popup in the browser. Cordova applications don't require
 users to accept any popups. 
 
+If no byte quota is provided then 10MB is requested.
+
 Callback format should be as 
 follows:
 
@@ -220,7 +239,7 @@ same behaviour as the Node.js fs module.
 
 
 #### fs.rmdir(dirName, callback)
-Delete a directory.
+Delete a directory. It must be empty, just like with the Node.js rmdir function.
 
 
 #### fs.exists(path, callback)

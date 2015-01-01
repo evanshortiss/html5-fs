@@ -565,10 +565,7 @@ exports.writeFile = function(path, data, callback, append) {
         if (utils.isMobile()) {
           writer.write(data);
         } else {
-          // Only desktop has blob support AFAIK
-          writer.write(new Blob([data], {
-            type: 'text/plain'
-          }));
+          writer.write(new Blob([data]));
         }
       }, fail);
     }
@@ -658,7 +655,7 @@ function requestFileSystem(bytes, success, fail) {
     );
   } else if (window.webkitRequestFileSystem) {
     window.webkitRequestFileSystem(
-      window.PERSISTENT_FLAG,
+      window.PERSISTENT,
       bytes,
       success,
       fail
