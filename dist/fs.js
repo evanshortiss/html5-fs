@@ -225,8 +225,8 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-}).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":2}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_("g5I+bs"))
+},{"g5I+bs":2}],2:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -565,10 +565,7 @@ exports.writeFile = function(path, data, callback, append) {
         if (utils.isMobile()) {
           writer.write(data);
         } else {
-          // Only desktop has blob support AFAIK
-          writer.write(new Blob([data], {
-            type: 'text/plain'
-          }));
+          writer.write(new Blob([data]));
         }
       }, fail);
     }
@@ -658,7 +655,7 @@ function requestFileSystem(bytes, success, fail) {
     );
   } else if (window.webkitRequestFileSystem) {
     window.webkitRequestFileSystem(
-      window.PERSISTENT_FLAG,
+      window.PERSISTENT,
       bytes,
       success,
       fail
