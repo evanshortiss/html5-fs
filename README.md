@@ -1,6 +1,10 @@
 # html5-fs
 
-#### A Node.js fs style FileSystem API Wrapper
+## Maintainers/Contributors
+If you have ideas and/or time to work on this project feel free to get in
+touch and I will be happy to collaborate. There be work to do!
+
+## A Node.js fs style FileSystem API Wrapper
 
 The reason I chose write this module was due to the availability of
 FileSystem APIs in regular browsers and Cordova applications and the desire for
@@ -16,7 +20,7 @@ I initially began this module as a fork of GapFile, but started from scratch
 when I realised the two were radically different in style and aims.
 
 
-#### Install
+## Install
 Use a file from the _dist_ directory or do an npm install:
 
 ```
@@ -24,7 +28,7 @@ npm install html5-fs
 ```
 
 
-#### Example vs. Standard File System API
+## Example vs. Standard File System API
 
 This wrapper makes for shorter more concise code vs. the plain FileSystem API.
 It also has the added benefit of working with Node.js style libraries such as
@@ -122,7 +126,7 @@ build with FileSystem access and the FileSystem plugin as described
 [here](https://github.com/apache/cordova-plugin-file/blob/master/doc/index.md).
 
 
-## Project Wide Override
+## Project Wide "fs" Override
 You can map your project to use this module in place of the standard Node.js fs
 module by adding a _browser_ object like so into the package.json before
 running the browserify command. Just make sure html5-fs is installed as a
@@ -131,9 +135,8 @@ dependency first.
 ```json
 
 "browser": {
-  "fs": "html5-fs",
-},
-
+  "fs": "html5-fs"
+}
 ```
 
 For more info check out the
@@ -145,20 +148,20 @@ First install all dependencies with ```npm install```.
 Also make sure you have Grunt installed ```npm install -g grunt-cli```.
 
 If you plan to test either iOS or Android you'll need to run
-```cordova add platorm [platform-name]```. I did this using the Cordova CLI
+`cordova add platform [platform-name]`. I did this using the Cordova CLI
 version 4.1.2.
 
 If testing using the iOS Simulator you'll need to
-```npm install -g ios-sim``` too.
+`npm install -g ios-sim` too.
 
 To test using Android you'll need an emulator configured.
 
-Now run ```grunt test```. When the relevant browser(s) open allow
+Now run `grunt test`. When the relevant browser(s) open allow
 file system access via the popup that appears (this is standard) and the
 tests will run.
 
-To test Android run ```grunt test-android``` and for iOS use
-```grunt test-ios```.
+To test Android run `grunt test-android` and for iOS use
+`grunt test-ios`.
 
 
 ## Building & Contributing
@@ -261,3 +264,7 @@ with a __/__ character a file lookup is assumed. Result looks as follows:
     "modificationTime": "2014-04-26T17:01:11.000Z"
 }
 ```
+
+## Changelog
+
+0.1.0 - Use _window.PERSISTENT_ instead of _window.PERSISTENT_FLAG_
