@@ -1,6 +1,6 @@
 {
   "name": "html5-fs",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Node.js style wrapper for the HTML5/Cordova FileSytem API.",
   "main": "./src/api.js",
   "scripts": {
