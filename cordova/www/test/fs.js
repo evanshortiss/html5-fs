@@ -1,4 +1,4 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.fs=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.fs = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -225,51 +225,148 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-}).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":2}],2:[function(_dereq_,module,exports){
+}).call(this,require('_process'))
+},{"_process":2}],2:[function(require,module,exports){
 // shim for using process in browser
-
 var process = module.exports = {};
 
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
 
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+(function () {
+    try {
+        cachedSetTimeout = setTimeout;
+    } catch (e) {
+        cachedSetTimeout = function () {
+            throw new Error('setTimeout is not defined');
+        }
+    }
+    try {
+        cachedClearTimeout = clearTimeout;
+    } catch (e) {
+        cachedClearTimeout = function () {
+            throw new Error('clearTimeout is not defined');
+        }
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
     }
 
-    if (canPost) {
-        var queue = [];
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
             }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
+        }
+        queueIndex = -1;
+        len = queue.length;
     }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
 
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
 
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -283,20 +380,20 @@ process.emit = noop;
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
-}
+};
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
+process.umask = function() { return 0; };
 
-},{}],3:[function(_dereq_,module,exports){
+},{}],3:[function(require,module,exports){
 'use strict';
 
-var utils = _dereq_('./utils')
-  , pathm = _dereq_('path')
-  , fs = _dereq_('./fileSystem');
+var utils = require('./utils')
+  , pathm = require('path')
+  , fs = require('./fileSystem');
 
 var wrapSuccess = utils.wrapSuccess
   , wrapFail = utils.wrapFail;
@@ -430,8 +527,7 @@ exports.rmdir = function(path, callback) {
 
 
 exports.exists = function(path, callback) {
-  var success = wrapSuccess(callback)
-    , fail = wrapFail(callback);
+  var fail = wrapFail(callback);
 
   fs.getFile(path, {
     // Don't create the file, just look for it
@@ -439,12 +535,12 @@ exports.exists = function(path, callback) {
   }, function(err) {
     if (err && err.code === 1) { // NOT FOUND
       // If the file isn't found we don't want an error, pass false!
-      success(false);
+      callback(false);
     } else if (err) {
       // An actual error occured, pass it along
       fail(err);
     } else {
-      success(true);
+      callback(true);
     }
   });
 };
@@ -487,11 +583,11 @@ exports.init = function(bytes, callback) {
   });
 };
 
-},{"./fileSystem":4,"./utils":5,"path":1}],4:[function(_dereq_,module,exports){
+},{"./fileSystem":4,"./utils":5,"path":1}],4:[function(require,module,exports){
 'use strict';
 
-var utils = _dereq_('./utils')
-  , pathm = _dereq_('path');
+var utils = require('./utils')
+  , pathm = require('path');
 
 var DEFAULT_QUOTA = (10 * 1024 * 1024); // 10MB
 
@@ -624,7 +720,7 @@ exports.getFile = function(path, opts, callback) {
     doGet(fileSystem.root);
   } else {
     // Need to get container directory ref for the requested file
-    this.getDirectory(basePath, function (err, dir) {
+    this.getDirectory(basePath, opts, function (err, dir) {
       if (err) {
         callback(err, null);
       } else {
@@ -707,7 +803,7 @@ function requestQuota(quota, callback) {
   }
 }
 
-},{"./utils":5,"path":1}],5:[function(_dereq_,module,exports){
+},{"./utils":5,"path":1}],5:[function(require,module,exports){
 'use strict';
 
 /**
@@ -783,6 +879,5 @@ exports.isDirectory = function(path) {
   return (path.lastIndexOf('/') === (path.length - 1));
 };
 
-},{}]},{},[3])
-(3)
+},{}]},{},[3])(3)
 });
