@@ -134,7 +134,7 @@ exports.getFile = function(path, opts, callback) {
     doGet(fileSystem.root);
   } else {
     // Need to get container directory ref for the requested file
-    this.getDirectory(basePath, function (err, dir) {
+    this.getDirectory(basePath, opts, function (err, dir) {
       if (err) {
         callback(err, null);
       } else {
