@@ -143,7 +143,13 @@ exports.exists = function(path, callback) {
     // Don't create the file, just look for it
     create: false
   }, function(err) {
-    if (err && err.code === 1) { // NOT FOUND
+    // FileError is deprecated and will be removed in M54,
+    // around October 2016. Please use the 'name' or 'message'
+    // attributes of the error rather than 'code'.
+    // See https://www.chromestatus.com/features/6687420359639040.
+    if (err &&
+      ((window.FileError && err.code === 1) ||
+      (err.name === 'NotFoundError'))) { // NOT FOUND
       // If the file isn't found we don't want an error, pass false!
       success(false);
     } else if (err) {
