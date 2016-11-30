@@ -136,23 +136,23 @@ exports.rmdir = function(path, callback) {
 
 
 exports.exists = function(path, callback) {
-  var success = wrapSuccess(callback)
-    , fail = wrapFail(callback);
+  var fail = wrapFail(callback);
 
   fs.getFile(path, {
     // Don't create the file, just look for it
     create: false
   }, function(err) {
-    if (
-      err &&
-      ((err.name && err.name.match(/notfound/gi) || err.code === 1)) ) {
+    // See https://www.chromestatus.com/features/6687420359639040.
+    if (err &&
+      ((window.FileError && err.code === 1) ||
+      (err.name === 'NotFoundError'))) { // NOT FOUND
       // If the file isn't found we don't want an error, pass false!
-      success(false);
+      callback(false);
     } else if (err) {
       // An actual error occured, pass it along
       fail(err);
     } else {
-      success(true);
+      callback(true);
     }
   });
 };

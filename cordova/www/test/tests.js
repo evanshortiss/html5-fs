@@ -68,19 +68,17 @@
 
     describe('#exists', function() {
       it('Should return false.', function(done) {
-        fs.exists('somefakepathimadeuplike', function(err, exists) {
-          expect(err).to.equal(null);
+        fs.exists('somefakepathimadeuplike', function(exists) {
           expect(exists).to.equal(false);
-          done(err);
+          done();
         });
       });
 
       it('Should return true.', function(done) {
         writeDefaultFile(function(/*err, path*/) {
-          fs.exists(TEST_FILE_PATH, function(err, exists) {
-            expect(err).to.equal(null);
+          fs.exists(TEST_FILE_PATH, function(exists) {
             expect(exists).to.equal(true);
-            done(err);
+            done();
           });
         });
       });

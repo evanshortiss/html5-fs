@@ -61,7 +61,7 @@ module.exports = function(grunt) {
           './cordova/www/test/fs.js': ['./src/api.js'],
         },
         options: {
-          bundleOptions: {
+          browserifyOptions: {
             'standalone': 'fs',
             // 'debug': true
           }
@@ -72,7 +72,7 @@ module.exports = function(grunt) {
           './dist/fs.js': ['./src/api.js'],
         },
         options: {
-          bundleOptions: {
+          browserifyOptions: {
             'standalone': 'fs'
           }
         }
