@@ -136,8 +136,7 @@ exports.rmdir = function(path, callback) {
 
 
 exports.exists = function(path, callback) {
-  var success = wrapSuccess(callback)
-    , fail = wrapFail(callback);
+  var fail = wrapFail(callback);
 
   fs.getFile(path, {
     // Don't create the file, just look for it
@@ -145,12 +144,12 @@ exports.exists = function(path, callback) {
   }, function(err) {
     if (err && err.code === 1) { // NOT FOUND
       // If the file isn't found we don't want an error, pass false!
-      success(false);
+      callback(false);
     } else if (err) {
       // An actual error occured, pass it along
       fail(err);
     } else {
-      success(true);
+      callback(true);
     }
   });
 };
