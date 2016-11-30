@@ -225,8 +225,8 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-}).call(this,_dereq_("JkpR2F"))
-},{"JkpR2F":2}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_("g5I+bs"))
+},{"g5I+bs":2}],2:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -437,7 +437,9 @@ exports.exists = function(path, callback) {
     // Don't create the file, just look for it
     create: false
   }, function(err) {
-    if (err && err.code === 1) { // NOT FOUND
+    if (
+      err &&
+      ((err.name && err.name.match(/notfound/gi) || err.code === 1)) ) {
       // If the file isn't found we don't want an error, pass false!
       success(false);
     } else if (err) {

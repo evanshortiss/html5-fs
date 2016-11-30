@@ -143,7 +143,9 @@ exports.exists = function(path, callback) {
     // Don't create the file, just look for it
     create: false
   }, function(err) {
-    if (err && err.code === 1) { // NOT FOUND
+    if (
+      err &&
+      ((err.name && err.name.match(/notfound/gi) || err.code === 1)) ) {
       // If the file isn't found we don't want an error, pass false!
       success(false);
     } else if (err) {
