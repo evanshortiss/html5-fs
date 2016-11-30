@@ -267,4 +267,8 @@ with a __/__ character a file lookup is assumed. Result looks as follows:
 
 ## Changelog
 
-0.1.0 - Use _window.PERSISTENT_ instead of _window.PERSISTENT_FLAG_
+* 0.1.1
+  * Fix from @vitalets for DOMError vs. FileError codes
+  * Fix from @haadcode for fs.exists signature and bug
+
+* 0.1.0 - Use _window.PERSISTENT_ instead of _window.PERSISTENT_FLAG_
